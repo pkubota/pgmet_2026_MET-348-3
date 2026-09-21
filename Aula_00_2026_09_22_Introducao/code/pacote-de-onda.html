@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pacote de Onda — Propagação, Dispersão e Dissipação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c1620;
+    --bg-2:#0f1e2b;
+    --panel:#122232;
+    --panel-2:#0e1c29;
+    --line:#22384a;
+    --text:#e7eef4;
+    --text-dim:#9db0c0;
+    --carrier:#7dd3fc;
+    --envelope:#f5b942;
+    --comp:#8fa6b8;
+    --accent:#f5b942;
+    --danger:#f28b82;
+    --ok:#7ee0b0;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#f3f1ea; --bg-2:#ece8dd; --panel:#fffdf8; --panel-2:#f6f2e8;
+      --line:#ddd5c2; --text:#1c2a33; --text-dim:#5c6b74;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0c1620; --bg-2:#0f1e2b; --panel:#122232; --panel-2:#0e1c29;
+    --line:#22384a; --text:#e7eef4; --text-dim:#9db0c0;
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:radial-gradient(1200px 700px at 15% -10%, var(--bg-2), var(--bg) 60%);
+    color:var(--text);
+    font-family:"IBM Plex Sans", sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:1180px;margin:0 auto;padding:28px 20px 60px;}
+  header{margin-bottom:22px;}
+  .kicker{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12.5px;
+    letter-spacing:.04em;
+    color:var(--envelope);
+    margin:0 0 10px;
+  }
+  h1{
+    font-family:"Fraunces", serif;
+    font-weight:500;
+    font-size:clamp(28px,4vw,42px);
+    line-height:1.08;
+    margin:0 0 10px;
+    max-width:14ch;
+  }
+  h1 em{font-style:italic; color:var(--envelope);}
+  .sub{
+    color:var(--text-dim);
+    font-size:15.5px;
+    max-width:62ch;
+    line-height:1.55;
+    margin:0;
+  }
+  .layout{
+    display:grid;
+    grid-template-columns:1.55fr 1fr;
+    gap:18px;
+    align-items:start;
+    margin-top:26px;
+  }
+  @media (max-width:920px){
+    .layout{grid-template-columns:1fr;}
+  }
+  .stage{
+    background:linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px 16px 12px;
+    position:relative;
+  }
+  .stage-top{
+    display:flex; justify-content:space-between; align-items:baseline;
+    gap:10px; flex-wrap:wrap; margin-bottom:8px;
+  }
+  .stage-title{
+    font-family:"Fraunces", serif;
+    font-size:16px;
+    color:var(--text);
+    margin:0;
+  }
+  .legend{display:flex; gap:14px; font-size:12.5px; color:var(--text-dim); flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .swatch{width:14px; height:3px; border-radius:2px; display:inline-block;}
+  canvas{
+    width:100%;
+    height:420px;
+    display:block;
+    border-radius:8px;
+    background:var(--bg);
+    touch-action:none;
+  }
+  .readouts{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    margin-top:12px;
+  }
+  @media (max-width:560px){ .readouts{grid-template-columns:repeat(2,1fr);} }
+  .readout{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:9px 11px;
+  }
+  .readout .lbl{font-size:11px; color:var(--text-dim); margin-bottom:3px;}
+  .readout .val{font-family:"IBM Plex Mono", monospace; font-size:15.5px; font-weight:500;}
+  .val.cp{color:var(--carrier);}
+  .val.cg{color:var(--envelope);}
+  .transport{
+    display:flex; align-items:center; gap:10px; margin-top:14px; flex-wrap:wrap;
+  }
+  button{
+    font-family:"IBM Plex Sans", sans-serif;
+    font-size:13.5px;
+    font-weight:500;
+    cursor:pointer;
+    border-radius:8px;
+    padding:8px 14px;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    color:var(--text);
+    transition:background .15s ease, border-color .15s ease;
+  }
+  button:hover{border-color:var(--envelope);}
+  button.primary{
+    background:var(--envelope);
+    color:#1a1305;
+    border-color:var(--envelope);
+  }
+  button.primary:hover{filter:brightness(1.06);}
+  .speedwrap{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-dim); margin-left:auto;}
+  .speedwrap input[type=range]{width:100px;}
+
+  .panel{
+    background:linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px 16px 6px;
+  }
+  .group{margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid var(--line);}
+  .group:last-child{border-bottom:none;}
+  .group h3{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:11.5px;
+    letter-spacing:.03em;
+    color:var(--text-dim);
+    margin:0 0 10px;
+    text-transform:none;
+  }
+  .field{margin-bottom:11px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:13px; margin-bottom:5px; gap:8px;
+  }
+  .field label .name{color:var(--text);}
+  .field label .num{font-family:"IBM Plex Mono", monospace; color:var(--envelope); font-size:12.5px;}
+  input[type=range]{
+    width:100%; height:4px; -webkit-appearance:none; appearance:none;
+    background:var(--line); border-radius:3px; outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:15px; height:15px; border-radius:50%;
+    background:var(--envelope); cursor:pointer; border:2px solid var(--bg);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:15px; height:15px; border-radius:50%; background:var(--envelope);
+    cursor:pointer; border:2px solid var(--bg);
+  }
+  select{
+    width:100%; padding:8px 9px; border-radius:8px;
+    background:var(--panel-2); color:var(--text); border:1px solid var(--line);
+    font-family:"IBM Plex Sans", sans-serif; font-size:13.5px;
+  }
+  .modebar{display:flex; gap:6px;}
+  .modebar button{flex:1; padding:8px 6px; font-size:12.5px;}
+  .modebar button.active{background:var(--envelope); color:#1a1305; border-color:var(--envelope);}
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .toggle-row .name{font-size:13px;}
+  .switch{position:relative; width:38px; height:21px; flex:none;}
+  .switch input{opacity:0; width:0; height:0;}
+  .slider-tog{
+    position:absolute; inset:0; background:var(--line); border-radius:20px;
+    cursor:pointer; transition:.15s;
+  }
+  .slider-tog:before{
+    content:""; position:absolute; width:15px; height:15px; left:3px; top:3px;
+    background:var(--text-dim); border-radius:50%; transition:.15s;
+  }
+  input:checked + .slider-tog{background:var(--envelope);}
+  input:checked + .slider-tog:before{transform:translateX(17px); background:#1a1305;}
+
+  .formula{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:13px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:9px 11px;
+    color:var(--envelope);
+    margin-top:2px;
+    overflow-x:auto;
+  }
+
+  .explain{margin-top:26px;}
+  .explain-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:14px;
+  }
+  @media (max-width:820px){ .explain-grid{grid-template-columns:1fr;} }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:15px 16px;
+  }
+  .card h4{
+    font-family:"Fraunces", serif; font-weight:500; font-size:16px;
+    margin:0 0 8px; color:var(--envelope);
+  }
+  .card p{font-size:13.8px; line-height:1.55; color:var(--text-dim); margin:0;}
+  .card p + p{margin-top:8px;}
+  footer{margin-top:26px; font-size:12px; color:var(--text-dim); text-align:center;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <p class="kicker">PNTC — previsão numérica de tempo e clima</p>
+    <h1>Pacote de onda: propagação, <em>dispersão</em> e dissipação</h1>
+    <p class="sub">Um trem de onda "curto" é o batimento de várias ondas simples somadas. Ajuste a relação de dispersão e veja a envoltória (o pacote, que se move na velocidade de grupo) se separar da onda portadora (que se move na velocidade de fase) — e, se quiser, dissipar componentes de número de onda alto.</p>
+  </header>
+
+  <div class="layout">
+
+    <div class="stage">
+      <div class="stage-top">
+        <p class="stage-title">η(x, t) — deslocamento do pacote</p>
+        <div class="legend">
+          <span><span class="swatch" style="background:var(--comp)"></span>ondas componentes (painéis de cima)</span>
+          <span><span class="swatch" style="background:var(--carrier)"></span>soma</span>
+          <span><span class="swatch" style="background:var(--envelope)"></span>envoltória</span>
+        </div>
+      </div>
+      <canvas id="cv"></canvas>
+
+      <div class="readouts">
+        <div class="readout">
+          <div class="lbl">tempo decorrido</div>
+          <div class="val" id="rt">0.00</div>
+        </div>
+        <div class="readout">
+          <div class="lbl">c_fase = ω(k₀)/k₀</div>
+          <div class="val cp" id="rcp">–</div>
+        </div>
+        <div class="readout">
+          <div class="lbl">c_grupo = dω/dk|k₀</div>
+          <div class="val cg" id="rcg">–</div>
+        </div>
+        <div class="readout">
+          <div class="lbl">amplitude do pico</div>
+          <div class="val" id="ramp">–</div>
+        </div>
+      </div>
+
+      <div class="transport">
+        <button class="primary" id="btnPlay">Pausar</button>
+        <button id="btnReset">Reiniciar</button>
+        <label class="toggle-row" style="gap:6px;">
+          <span class="switch">
+            <input type="checkbox" id="chkFollow">
+            <span class="slider-tog"></span>
+          </span>
+          <span class="name" style="color:var(--text-dim)">seguir o grupo</span>
+        </label>
+        <label class="toggle-row" style="gap:6px;">
+          <span class="switch">
+            <input type="checkbox" id="chkComponents" checked>
+            <span class="slider-tog"></span>
+          </span>
+          <span class="name" style="color:var(--text-dim)">ondas individuais</span>
+        </label>
+        <div class="speedwrap">
+          <span>velocidade</span>
+          <input type="range" id="sSpeed" min="0.1" max="3" step="0.1" value="1">
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+
+      <div class="group">
+        <h3>composição do pacote</h3>
+        <div class="modebar">
+          <button id="modeTwo" class="active">ondas discretas</button>
+          <button id="modeGauss">espectro gaussiano</button>
+        </div>
+        <div id="wavesList" style="margin-top:12px;"></div>
+        <button id="btnAddWave" style="width:100%; margin-top:8px;">+ adicionar onda</button>
+      </div>
+
+      <div class="group">
+        <h3>relação de dispersão ω(k)</h3>
+        <div class="field">
+          <select id="sRelation">
+            <option value="none">Não dispersiva</option>
+            <option value="water" selected>Ondas de gravidade na água</option>
+            <option value="rossby">Ondas de Rossby (plano β)</option>
+          </select>
+        </div>
+        <div class="formula" id="fFormula">ω(k) = √(g·k·tanh(k·H))</div>
+      </div>
+
+      <div class="group" id="relationParams"></div>
+
+      <div class="group">
+        <h3>número de onda</h3>
+        <div class="field">
+          <label><span class="name">k₀ (centro do espectro)</span><span class="num" id="vK0">1.00</span></label>
+          <input type="range" id="sK0" min="0.15" max="3" step="0.01" value="1">
+        </div>
+        <div class="field" id="dkField">
+          <label><span class="name">Δk (largura de banda)</span><span class="num" id="vDk">0.18</span></label>
+          <input type="range" id="sDk" min="0.02" max="1" step="0.01" value="0.18">
+        </div>
+      </div>
+
+      <div class="group">
+        <h3>dissipação</h3>
+        <div class="toggle-row">
+          <span class="name">amortecer componentes de k alto</span>
+          <span class="switch">
+            <input type="checkbox" id="chkDamp">
+            <span class="slider-tog"></span>
+          </span>
+        </div>
+        <div class="field" style="margin-top:10px;">
+          <label><span class="name">ν — γ(k) = ν·k²</span><span class="num" id="vNu">0.010</span></label>
+          <input type="range" id="sNu" min="0.001" max="0.05" step="0.001" value="0.01">
+        </div>
+      </div>
+
+      <div class="group">
+        <h3>janela espacial</h3>
+        <div class="field">
+          <label><span class="name">L (metade do domínio)</span><span class="num" id="vL">55</span></label>
+          <input type="range" id="sL" min="20" max="150" step="1" value="55">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="explain">
+    <div class="explain-grid">
+      <div class="card">
+        <h4>Fase × grupo</h4>
+        <p>Cada componente senoidal avança na sua própria velocidade de fase, ω(k)/k. Mas o que você enxerga como "o pacote" — a envoltória que carrega a energia — se move na velocidade de grupo, c_g = dω/dk.</p>
+        <p>Quando ω(k) é linear em k (caso não dispersivo), c_fase = c_grupo e o pacote viaja sem se deformar. Em qualquer outro caso, o meio é dispersivo.</p>
+      </div>
+      <div class="card">
+        <h4>Dispersão</h4>
+        <p>Componentes de k ligeiramente diferentes viajam em velocidades de fase diferentes. Com o tempo, isso alarga o pacote no espaço — a energia que estava concentrada se espalha.</p>
+        <p>Nas ondas de gravidade em água, c_fase &gt; c_grupo: cristas nascem na traseira do grupo, atravessam-no e desaparecem na frente — o clássico "grupo de ondas" de superfície.</p>
+      </div>
+      <div class="card">
+        <h4>Ondas de Rossby</h4>
+        <p>Em ω = Uk − βk/(k²+l²), ondas longas (k pequeno) e curtas (k grande) podem ter velocidades de grupo de sinais opostos, mesmo com fase sempre se propagando para oeste em relação ao escoamento médio.</p>
+        <p>É por isso que, em previsão numérica, erros de dispersão em ondas curtas de Rossby podem se mover na direção contrária à da própria onda — um problema clássico de esquemas numéricos mal resolvidos.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>Unidades de k, x, t e dos parâmetros normalizadas para fins didáticos — as formas funcionais de ω(k) são as relações de dispersão reais de cada regime.</footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- state ----------
+  var state = {
+    mode: "two",           // "two" | "gauss"
+    relation: "water",     // "none" | "water" | "rossby"
+    k0: 1.0,
+    dk: 0.18,
+    waves: [ { dk:-0.09, amp:0.5 }, { dk:0.09, amp:0.5 } ],
+    damp: false,
+    nu: 0.01,
+    L: 55,
+    follow: false,
+    showComponents: true,
+    playing: true,
+    speed: 1.0,
+    t: 0,
+    params: {
+      none:   { c0: 1.0 },
+      water:  { g: 9.8, H: 1.5 },
+      rossby: { beta: 0.5, l: 0.5, U: 0 }
+    }
+  };
+
+  // ---------- dispersion relations ----------
+  function omega(k, rel, p){
+    rel = rel || state.relation;
+    p = p || state.params[rel];
+    switch(rel){
+      case "none":   return p.c0 * k;
+      case "water":  return Math.sqrt(Math.max(p.g * k * Math.tanh(k * p.H), 0));
+      case "rossby": return p.U * k - (p.beta * k) / (k*k + p.l*p.l);
+    }
+    return 0;
+  }
+
+  function groupVel(k, rel, p){
+    var dk = Math.max(k * 1e-3, 1e-4);
+    var wPlus = omega(k + dk, rel, p);
+    var wMinus = omega(Math.max(k - dk, 1e-5), rel, p);
+    return (wPlus - wMinus) / ( (k+dk) - Math.max(k-dk,1e-5) );
+  }
+
+  // ---------- build components ----------
+  function buildComponents(){
+    var rel = state.relation, p = state.params[rel];
+    var k0 = state.k0, dk = state.dk;
+    var comps = [];
+    if (state.mode === "two"){
+      state.waves.forEach(function(wv){
+        var k = Math.max(k0 + wv.dk, 0.02);
+        comps.push({ k: k, A: wv.amp, w: omega(k, rel, p) });
+      });
+    } else {
+      var N = 41;
+      var span = 3 * dk;
+      var sum = 0;
+      var raw = [];
+      for (var i=0;i<N;i++){
+        var frac = (i/(N-1)) - 0.5; // -0.5..0.5
+        var k = Math.max(k0 + frac * 2 * span, 0.02);
+        var amp = Math.exp( -Math.pow((k - k0)/Math.max(dk,0.001), 2) );
+        raw.push({k:k, amp:amp});
+        sum += amp;
+      }
+      raw.forEach(function(r){
+        comps.push({ k:r.k, A:r.amp/sum, w: omega(r.k, rel, p) });
+      });
+    }
+    comps.forEach(function(c){ c.gamma = state.damp ? state.nu * c.k * c.k : 0; });
+    return comps;
+  }
+
+  // ---------- canvas setup ----------
+  var canvas = document.getElementById("cv");
+  var ctx = canvas.getContext("2d");
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resize(){
+    var rect = canvas.getBoundingClientRect();
+    canvas.width = Math.round(rect.width * DPR);
+    canvas.height = Math.round(rect.height * DPR);
+  }
+  window.addEventListener("resize", resize);
+
+  var NX = 640;
+
+  function css(varName){
+    return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  }
+
+  function draw(comps){
+    resize();
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0,0,W,H);
+
+    var L = state.L;
+    var offset = state.follow ? groupVel(state.k0, state.relation, state.params[state.relation]) * state.t : 0;
+    function toX(xl){ return ( (xl + L) / (2*L) ) * W; }
+
+    // which components get their own row above the sum
+    var maxPanels = 4;
+    var topComps = [];
+    if (state.showComponents){
+      if (comps.length <= maxPanels){
+        topComps = comps.slice();
+      } else {
+        var step = (comps.length - 1) / (maxPanels - 1);
+        for (var s=0; s<maxPanels; s++){
+          topComps.push(comps[Math.round(s*step)]);
+        }
+      }
+    }
+    var nTop = topComps.length;
+    var rowH = nTop > 0 ? Math.min(H*0.13, 46*DPR) : 0;
+    var topTotal = nTop * rowH;
+    var bottomTop = topTotal;
+    var bottomH = H - topTotal;
+
+    var xs = new Array(NX);
+    var eta = new Array(NX);
+    var env = new Array(NX);
+    var maxAbs = 0.0001;
+    var topCurves = topComps.map(function(){ return new Array(NX); });
+    var topAmps = topComps.map(function(comp){ return comp.A * Math.exp(-comp.gamma * state.t); });
+
+    for (var i=0;i<NX;i++){
+      var xLocal = -L + (2*L * i)/(NX-1);
+      var xAbs = xLocal + offset;
+      var re=0, im=0;
+      for (var c=0;c<comps.length;c++){
+        var comp = comps[c];
+        var amp = comp.A * Math.exp(-comp.gamma * state.t);
+        var phase = comp.k * xAbs - comp.w * state.t;
+        re += amp * Math.cos(phase);
+        im += amp * Math.sin(phase);
+      }
+      xs[i] = xLocal;
+      eta[i] = re;
+      env[i] = Math.sqrt(re*re + im*im);
+      if (Math.abs(re) > maxAbs) maxAbs = Math.abs(re);
+      if (env[i] > maxAbs) maxAbs = env[i];
+
+      for (var tc=0; tc<nTop; tc++){
+        var comp2 = topComps[tc];
+        var phase2 = comp2.k * xAbs - comp2.w * state.t;
+        topCurves[tc][i] = topAmps[tc] * Math.cos(phase2);
+      }
+    }
+
+    var lineColor = css('--line');
+    var dimColor = css('--text-dim');
+    var compColor = css('--comp');
+    var monoFont = (11*DPR).toFixed(0) + "px 'IBM Plex Mono', monospace";
+
+    var maxTopAmp = 1e-4;
+    topAmps.forEach(function(a){ if (a > maxTopAmp) maxTopAmp = a; });
+    var sharedRowScale = (rowH*0.36) / maxTopAmp;
+
+    // ---- top rows: each component wave on its own baseline ----
+    for (var tp=0; tp<nTop; tp++){
+      var rowTop = tp*rowH;
+      var rowMidY = rowTop + rowH/2;
+      var rowScale = sharedRowScale;
+
+      if (tp>0){
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 1*DPR;
+        ctx.beginPath();
+        ctx.moveTo(0, rowTop); ctx.lineTo(W, rowTop);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = lineColor;
+      ctx.lineWidth = 1*DPR;
+      ctx.beginPath();
+      ctx.moveTo(0, rowMidY); ctx.lineTo(W, rowMidY);
+      ctx.stroke();
+
+      ctx.strokeStyle = compColor;
+      ctx.lineWidth = 1.5*DPR;
+      ctx.beginPath();
+      for (var ii=0; ii<NX; ii++){
+        var px = toX(xs[ii]);
+        var py = rowMidY - topCurves[tp][ii]*rowScale;
+        if (ii===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = dimColor;
+      ctx.font = monoFont;
+      ctx.fillText("onda " + (tp+1) + "  ·  k = " + topComps[tp].k.toFixed(2) + "  ·  A = " + topAmps[tp].toFixed(2), 8*DPR, rowTop + 13*DPR);
+    }
+
+    if (nTop>0){
+      ctx.strokeStyle = lineColor;
+      ctx.lineWidth = 1.5*DPR;
+      ctx.beginPath();
+      ctx.moveTo(0, bottomTop); ctx.lineTo(W, bottomTop);
+      ctx.stroke();
+    }
+
+    // ---- bottom panel: sum of all components + envelope ----
+    var bMidY = bottomTop + bottomH*0.56;
+    var bScale = (bottomH*0.36) / (maxAbs * 1.15);
+    function toYb(v){ return bMidY - v*bScale; }
+
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = 1*DPR;
+    ctx.beginPath();
+    ctx.moveTo(0, bMidY); ctx.lineTo(W, bMidY);
+    ctx.stroke();
+
+    var envColor = css('--envelope');
+    ctx.beginPath();
+    for (var i2=0;i2<NX;i2++){
+      var px1 = toX(xs[i2]), py1 = toYb(env[i2]);
+      if (i2===0) ctx.moveTo(px1,py1); else ctx.lineTo(px1,py1);
+    }
+    for (var i3=NX-1;i3>=0;i3--){
+      var px2 = toX(xs[i3]), py2 = toYb(-env[i3]);
+      ctx.lineTo(px2,py2);
+    }
+    ctx.closePath();
+    ctx.fillStyle = envColor + "1c";
+    ctx.fill();
+
+    ctx.strokeStyle = envColor;
+    ctx.lineWidth = 1.6*DPR;
+    ctx.setLineDash([DPR*5, DPR*4]);
+    ctx.beginPath();
+    for (var j=0;j<NX;j++){
+      var px3 = toX(xs[j]), py3 = toYb(env[j]);
+      if (j===0) ctx.moveTo(px3,py3); else ctx.lineTo(px3,py3);
+    }
+    ctx.stroke();
+    ctx.beginPath();
+    for (var j2=0;j2<NX;j2++){
+      var px4 = toX(xs[j2]), py4 = toYb(-env[j2]);
+      if (j2===0) ctx.moveTo(px4,py4); else ctx.lineTo(px4,py4);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.strokeStyle = css('--carrier');
+    ctx.lineWidth = 1.8*DPR;
+    ctx.beginPath();
+    for (var k2=0;k2<NX;k2++){
+      var px5 = toX(xs[k2]), py5 = toYb(eta[k2]);
+      if (k2===0) ctx.moveTo(px5,py5); else ctx.lineTo(px5,py5);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = dimColor;
+    ctx.font = monoFont;
+    ctx.fillText("soma dos componentes  +  envoltória", 8*DPR, bottomTop + 13*DPR);
+
+    return { maxAbs: maxAbs };
+  }
+
+  // ---------- UI wiring ----------
+  var relationDefs = {
+    none: {
+      formula: "ω(k) = c₀·k",
+      params: [
+        { key:"c0", label:"c₀ (velocidade)", min:0.1, max:3, step:0.01 }
+      ]
+    },
+    water: {
+      formula: "ω(k) = √(g·k·tanh(k·H))",
+      params: [
+        { key:"g", label:"g (gravidade)", min:1, max:20, step:0.1 },
+        { key:"H", label:"H (profundidade)", min:0.2, max:10, step:0.05 }
+      ]
+    },
+    rossby: {
+      formula: "ω(k) = U·k − β·k / (k² + l²)",
+      params: [
+        { key:"beta", label:"β (gradiente de vorticidade planetária)", min:0.05, max:2, step:0.01 },
+        { key:"l", label:"l (número de onda meridional)", min:0.05, max:2, step:0.01 },
+        { key:"U", label:"U (escoamento médio zonal)", min:-2, max:2, step:0.01 }
+      ]
+    }
+  };
+
+  var relationParamsDiv = document.getElementById("relationParams");
+  var fFormula = document.getElementById("fFormula");
+  var sRelation = document.getElementById("sRelation");
+
+  function renderRelationParams(){
+    var rel = state.relation;
+    var def = relationDefs[rel];
+    fFormula.textContent = def.formula;
+    relationParamsDiv.innerHTML = "<h3>parâmetros de ω(k)</h3>";
+    def.params.forEach(function(p){
+      var val = state.params[rel][p.key];
+      var wrap = document.createElement("div");
+      wrap.className = "field";
+      wrap.innerHTML =
+        '<label><span class="name">'+p.label+'</span><span class="num" id="v_'+rel+'_'+p.key+'">'+val.toFixed(2)+'</span></label>'+
+        '<input type="range" min="'+p.min+'" max="'+p.max+'" step="'+p.step+'" value="'+val+'" id="s_'+rel+'_'+p.key+'">';
+      relationParamsDiv.appendChild(wrap);
+      var slider = wrap.querySelector("input");
+      var out = wrap.querySelector(".num");
+      slider.addEventListener("input", function(){
+        state.params[rel][p.key] = parseFloat(slider.value);
+        out.textContent = parseFloat(slider.value).toFixed(2);
+      });
+    });
+  }
+
+  sRelation.addEventListener("change", function(){
+    state.relation = sRelation.value;
+    renderRelationParams();
+  });
+  renderRelationParams();
+
+  var modeTwo = document.getElementById("modeTwo");
+  var modeGauss = document.getElementById("modeGauss");
+  var wavesList = document.getElementById("wavesList");
+  var btnAddWave = document.getElementById("btnAddWave");
+  var dkField = document.getElementById("dkField");
+  var MAX_WAVES = 4, MIN_WAVES = 2;
+
+  function renderWavesList(){
+    wavesList.innerHTML = "";
+    state.waves.forEach(function(wv, idx){
+      var row = document.createElement("div");
+      row.style.marginBottom = "10px";
+      row.style.paddingBottom = "10px";
+      if (idx < state.waves.length - 1) row.style.borderBottom = "1px solid var(--line)";
+
+      var head = document.createElement("div");
+      head.style.display = "flex";
+      head.style.justifyContent = "space-between";
+      head.style.alignItems = "center";
+      head.style.marginBottom = "6px";
+      var title = document.createElement("span");
+      title.textContent = "onda " + (idx+1);
+      title.style.fontSize = "12.5px";
+      title.style.color = "var(--text-dim)";
+      head.appendChild(title);
+      if (state.waves.length > MIN_WAVES){
+        var rm = document.createElement("button");
+        rm.textContent = "remover";
+        rm.style.padding = "3px 8px";
+        rm.style.fontSize = "11.5px";
+        rm.addEventListener("click", function(){
+          state.waves.splice(idx,1);
+          renderWavesList();
+        });
+        head.appendChild(rm);
+      }
+      row.appendChild(head);
+
+      var dkWrap = document.createElement("div");
+      dkWrap.className = "field";
+      dkWrap.innerHTML =
+        '<label><span class="name">deslocamento de k (k₀ + Δk)</span><span class="num">'+wv.dk.toFixed(2)+'</span></label>'+
+        '<input type="range" min="-1.5" max="1.5" step="0.01" value="'+wv.dk+'">';
+      var dkSlider = dkWrap.querySelector("input");
+      var dkOut = dkWrap.querySelector(".num");
+      dkSlider.addEventListener("input", function(){
+        wv.dk = parseFloat(dkSlider.value);
+        dkOut.textContent = wv.dk.toFixed(2);
+      });
+      row.appendChild(dkWrap);
+
+      var ampWrap = document.createElement("div");
+      ampWrap.className = "field";
+      ampWrap.style.marginTop = "6px";
+      ampWrap.innerHTML =
+        '<label><span class="name">amplitude</span><span class="num">'+wv.amp.toFixed(2)+'</span></label>'+
+        '<input type="range" min="0.05" max="1" step="0.01" value="'+wv.amp+'">';
+      var ampSlider = ampWrap.querySelector("input");
+      var ampOut = ampWrap.querySelector(".num");
+      ampSlider.addEventListener("input", function(){
+        wv.amp = parseFloat(ampSlider.value);
+        ampOut.textContent = wv.amp.toFixed(2);
+      });
+      row.appendChild(ampWrap);
+
+      wavesList.appendChild(row);
+    });
+    btnAddWave.style.display = state.waves.length >= MAX_WAVES ? "none" : "";
+  }
+  renderWavesList();
+
+  btnAddWave.addEventListener("click", function(){
+    if (state.waves.length >= MAX_WAVES) return;
+    var last = state.waves[state.waves.length-1];
+    state.waves.push({ dk: last.dk + 0.15, amp: 0.4 });
+    renderWavesList();
+  });
+
+  modeTwo.addEventListener("click", function(){
+    state.mode = "two";
+    modeTwo.classList.add("active");
+    modeGauss.classList.remove("active");
+    wavesList.style.display = "";
+    btnAddWave.style.display = state.waves.length >= MAX_WAVES ? "none" : "";
+    dkField.style.display = "none";
+  });
+  modeGauss.addEventListener("click", function(){
+    state.mode = "gauss";
+    modeGauss.classList.add("active");
+    modeTwo.classList.remove("active");
+    wavesList.style.display = "none";
+    btnAddWave.style.display = "none";
+    dkField.style.display = "";
+  });
+  dkField.style.display = "none";
+
+  var sK0 = document.getElementById("sK0"), vK0 = document.getElementById("vK0");
+  sK0.addEventListener("input", function(){
+    state.k0 = parseFloat(sK0.value);
+    vK0.textContent = state.k0.toFixed(2);
+  });
+
+  var sDk = document.getElementById("sDk"), vDk = document.getElementById("vDk");
+  sDk.addEventListener("input", function(){
+    state.dk = parseFloat(sDk.value);
+    vDk.textContent = state.dk.toFixed(2);
+  });
+
+  var chkDamp = document.getElementById("chkDamp");
+  chkDamp.addEventListener("change", function(){ state.damp = chkDamp.checked; });
+
+  var sNu = document.getElementById("sNu"), vNu = document.getElementById("vNu");
+  sNu.addEventListener("input", function(){
+    state.nu = parseFloat(sNu.value);
+    vNu.textContent = state.nu.toFixed(3);
+  });
+
+  var sL = document.getElementById("sL"), vL = document.getElementById("vL");
+  sL.addEventListener("input", function(){
+    state.L = parseFloat(sL.value);
+    vL.textContent = state.L.toFixed(0);
+  });
+
+  var chkFollow = document.getElementById("chkFollow");
+  chkFollow.addEventListener("change", function(){ state.follow = chkFollow.checked; });
+
+  var chkComponents = document.getElementById("chkComponents");
+  chkComponents.addEventListener("change", function(){ state.showComponents = chkComponents.checked; });
+
+  var sSpeed = document.getElementById("sSpeed");
+  sSpeed.addEventListener("input", function(){ state.speed = parseFloat(sSpeed.value); });
+
+  var btnPlay = document.getElementById("btnPlay");
+  btnPlay.addEventListener("click", function(){
+    state.playing = !state.playing;
+    btnPlay.textContent = state.playing ? "Pausar" : "Continuar";
+    if (state.playing) { last = performance.now(); requestAnimationFrame(loop); }
+  });
+
+  document.getElementById("btnReset").addEventListener("click", function(){
+    state.t = 0;
+  });
+
+  // ---------- readouts ----------
+  var rt = document.getElementById("rt"), rcp = document.getElementById("rcp"),
+      rcg = document.getElementById("rcg"), ramp = document.getElementById("ramp");
+
+  function updateReadouts(maxAbs){
+    var rel = state.relation, p = state.params[rel];
+    var w0 = omega(state.k0, rel, p);
+    var cp = w0 / state.k0;
+    var cg = groupVel(state.k0, rel, p);
+    rt.textContent = state.t.toFixed(2);
+    rcp.textContent = cp.toFixed(3);
+    rcg.textContent = cg.toFixed(3);
+    ramp.textContent = maxAbs.toFixed(3);
+  }
+
+  // ---------- animation loop ----------
+  var last = performance.now();
+  function loop(now){
+    var dt = Math.min((now - last)/1000, 0.05);
+    last = now;
+    if (state.playing){
+      state.t += dt * state.speed * 0.7;
+    }
+    var comps = buildComponents();
+    var res = draw(comps);
+    updateReadouts(res.maxAbs);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
