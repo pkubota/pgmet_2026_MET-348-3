@@ -1,5 +1,6 @@
 
-"O modelo para a execução do trabalho está no ftp para download"
+# "O modelo para a execução do trabalho está no ftp para download"
+## https://ftp.cptec.inpe.br/pesquisa/bam/paulo.kubota/externo/pgmet_met_348_3/jose.augusto/
 
 # José Augusto Ferreira Neto — radiação: nuvens baixas stratus
 
@@ -10,4 +11,4 @@
 # Relação com a disciplina: os temas comparam esquemas de parametrização radiativa (RRTMG, ecRad) e investigam viés sistemático de nuvens baixas — ligando os módulos de parametrizações físicas de radiação e de verificação/avaliação de modelo, além do tema de acoplamento oceano-atmosfera em regiões costeiras.
 
 
-https://ftp.cptec.inpe.br/pesquisa/bam/paulo.kubota/externo/pgmet_met_348_3/jose.augusto/
+
