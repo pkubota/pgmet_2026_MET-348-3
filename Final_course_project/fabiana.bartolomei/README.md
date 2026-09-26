@@ -5,7 +5,7 @@
 
 # Fabiana da Rocha Bartolomei — parametrização urbana / ilha de calor
 
-## 1.	Avaliação de esquemas de parametrização urbana no MONAN/MPAS: comparar esquemas de superfície urbana (camada única vs. multicamada, tipo BEP/SLUCM) na simulação da intensidade e extensão da ilha de calor em uma metrópole brasileira (https://zenodo.org/records/14773142).
+## 1.	Avaliação de esquemas de parametrização urbana: comparar esquemas de superfície urbana (camada única vs. multicamada, tipo BEP/SLUCM) na simulação da intensidade e extensão da ilha de calor em uma metrópole brasileira (https://zenodo.org/records/14773142).
 
 ## 2.	Sensibilidade da temperatura mínima noturna à rugosidade e inércia térmica urbana: investigar como diferentes representações de rugosidade e capacidade térmica dos materiais urbanos afetam a previsão da temperatura mínima em áreas urbanas versus rurais adjacentes (urban_canopy).
 
