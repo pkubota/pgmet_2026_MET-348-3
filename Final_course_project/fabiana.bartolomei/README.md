@@ -2,7 +2,7 @@
 
 ## https://ftp.cptec.inpe.br/pesquisa/bam/paulo.kubota/externo/pgmet_met_348_3/fabiana.bartolomei/
 
-## https://github.com/pkubota/pgmet_2026_MET-576-4/tree/main/Aula_11_31-07-2026_surface_schemes/urban_canopy
+## https://ftp.cptec.inpe.br/pesquisa/bam/paulo.kubota/externo/pgmet_met_348_3/fabiana.bartolomei/urban_canopy.tar.gz
 
 
 # Fabiana da Rocha Bartolomei — parametrização urbana / ilha de calor
