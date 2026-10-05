@@ -8,4 +8,4 @@
 
 ## 2.	A Previsibilidade dos Modelo Numéricos em representar a Oscilação Madden-Julian (MJO): Revisão bibliográfica comparando simulações de modelos de diferentes Centros Operacioanis.
 
-# Relação com a disciplina: os temas tratam de verificação de modelo/reanálise (ERA5) e de sensibilidade à resolução horizontal de grade na representação de ondas de leste africanas — respectivamente os módulos de avaliação de previsões e de discretização numérica vistos em PNTC, aplicados a um sistema precursor de ciclogênese tropical.
+# Relação com a disciplina: os temas tratam de verificação de modelo/reanálise (ERA5) e de sensibilidade na representação da Oscilação Madden-Julian (MJO).
