@@ -1,6 +1,8 @@
 
 # Modelos práticos de assimilação de dados (MET-348-3, PGMET)
 
+# O códigos está no pacote da_pratico.tar.gz e a instrução de uso no relatório
+
 ## data de entrega     Entrega dia 4/12/2026
 
 
