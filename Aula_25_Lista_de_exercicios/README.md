@@ -25,7 +25,7 @@ Todas as rodadas usam as MESMAS observações (semente fixa).
 Uso: `make run` (ou `make MODE=opt run`), depois `make plot`.
 Saídas por método: `<m>.bin/.ctl` (GrADS: livre, prev, verd, anal), `<m>_rmse.dat`.
 
-## Melhorias em relação ao código de partida (advec_diff_OI_B.f90)
+## Melhorias em relação ao código anteriores  (advec_diff_*.f90)
 1. `Lcorr=0,1` com `dx=1` tornava B praticamente diagonal (off-diagonal ~ e⁻⁵⁰). Agora Lcorr em pontos de grade (3).
 2. A análise não realimentava o modelo (`Run_Model` usa estado interno): não havia ciclo. Agora é cíclico.
 3. Observações sem ruído (`y = c_true + (c_model-c_true)/2`) e `random_seed()` a cada passo. Agora ruído gaussiano, semente fixa.
