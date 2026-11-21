@@ -1,6 +1,9 @@
 
 # Modelos práticos de assimilação de dados (MET-348-3, PGMET)
 
+## data de entrega     Entrega dia 4/12/2026
+
+
 Experimento de gêmeos idênticos com advecção-difusão 1D periódica:
 `dc/dt + (U + α c) dc/dx = κ d²c/dx²`. Verdade: U=1.0. Modelo: U=0.8 (erro de modelo)
 e background inicial deslocado/mais fraco. Observações: 1 a cada 5 pontos, a cada 5 passos, σ_o=0,02.
